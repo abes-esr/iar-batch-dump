@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@EnableBatchProcessing(dataSourceRef = "dataSource", transactionManagerRef = "transactionManager")
+@EnableBatchProcessing
 public class BatchConfig {
 
     // ======================

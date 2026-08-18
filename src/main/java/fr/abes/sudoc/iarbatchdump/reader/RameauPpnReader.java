@@ -2,7 +2,6 @@ package fr.abes.sudoc.iarbatchdump.reader;
 
 import fr.abes.sudoc.iarbatchdump.model.RameauExportParams;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Iterator;

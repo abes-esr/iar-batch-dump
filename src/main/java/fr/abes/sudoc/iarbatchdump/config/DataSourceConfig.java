@@ -5,6 +5,8 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 import javax.sql.DataSource;
 
@@ -21,13 +23,11 @@ public class DataSourceConfig {
     // --- DataSource H2 (pour Spring Batch) ---
     @Bean
     @Primary
-    @ConfigurationProperties(prefix = "spring.datasource.h2")
     public DataSource dataSource() {
-        return DataSourceBuilder.create()
-                .driverClassName("org.h2.Driver")
-                .url("jdbc:h2:mem:batchdb;DB_CLOSE_DELAY=-1")
-                .username("sa")
-                .password("")
+        return new EmbeddedDatabaseBuilder()
+                .setType(EmbeddedDatabaseType.H2)
+                .setName("batchdb")
+                .addScript("classpath:org/springframework/batch/core/schema-h2.sql")
                 .build();
     }
 }
