@@ -66,14 +66,14 @@ public class BatchConfig {
     // 4. JOBS
     // ======================
 
-    // ---------- JOB 1 : EXTRACTION + CSV ----------
-    @Bean
-    public Job rameauExtractJob(JobRepository jobRepository, Step extractStep) {
-        return new JobBuilder("rameauExtractJob", jobRepository)
-                .incrementer(new RunIdIncrementer())
-                .start(extractStep)
-                .build();
-    }
+//    // ---------- JOB 1 : EXTRACTION + CSV ----------
+//    @Bean
+//    public Job rameauExtractJob(JobRepository jobRepository, Step extractStep) {
+//        return new JobBuilder("rameauExtractJob", jobRepository)
+//                .incrementer(new RunIdIncrementer())
+//                .start(extractStep)
+//                .build();
+//    }
 
     @Bean
     public Step extractStep(
