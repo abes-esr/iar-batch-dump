@@ -35,12 +35,10 @@ datasource:
     password: ""
     driver-class-name: org.h2.Driver
 
-app:
-  batch:
-    ppn-query-file: sql/queries/select_ppn_with_rameau.sql
-
-# Disable scheduled jobs during tests
+# Custom application properties
 app:
   batch:
     chunk-size: 10
     max-readers: 1
+    output-dir: /tmp
+    ppn-query-file: sql/queries/select_ppn_with_rameau.sql
