@@ -1,0 +1,34 @@
+# Local development configuration
+# This file is for local testing and should NOT be committed to version control
+
+spring:
+  # H2 Database (Embedded)
+  datasource:
+    url: jdbc:h2:mem:batchdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        trace: true
+        web-allow-others: false
+
+# Oracle DataSource for local testing
+datasource:
+  oracle:
+    url: jdbc:oracle:thin:@//localhost:1521/ORCLPDB1
+    username: system
+    password: oracle
+    driver-class-name: oracle.jdbc.OracleDriver
+
+# Logging
+logging:
+  level:
+    com.levant.iar.batch: DEBUG
+    org.springframework.batch: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

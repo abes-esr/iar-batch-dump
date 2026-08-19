@@ -1,0 +1,68 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: iar-batch-dump
+  
+  # Primary DataSource - H2 (for Spring Batch metadata)
+  datasource:
+    url: jdbc:h2:mem:batchdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+    
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        trace: false
+        web-allow-others: false
+    
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+    
+  # Batch configuration
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+
+# Oracle DataSource Configuration (for data extraction)
+datasource:
+  oracle:
+    url: ${ORACLE_URL:jdbc:oracle:thin:@//localhost:1521/ORCLPDB1}
+    username: ${ORACLE_USERNAME:system}
+    password: ${ORACLE_PASSWORD:oracle}
+    driver-class-name: oracle.jdbc.OracleDriver
+    
+    # Connection pool settings
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: OracleHikariCP
+
+# Logging configuration
+logging:
+  level:
+    com.levant.iar.batch: DEBUG
+    org.springframework.batch: INFO
+    org.hibernate: INFO
+
+# Custom application properties
+app:
+  batch:
+    chunk-size: 1000
+    max-readers: 5
+    temp-directory: /tmp/iar-batch

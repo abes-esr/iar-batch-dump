@@ -1,9 +1,17 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+logs/
+
+# Build output
 target/
 output/
-*.class
 *.jar
 *.war
 
+# IDE files
 .idea/
 *.iml
 *.iws
@@ -12,9 +20,26 @@ output/
 .settings/
 .vscode/
 
+# Environment files
 *.env
 .env.*
 
-*.log
-logs/
-/src/main/resources/application.yml
+# Local properties
+*.properties.local
+*.yml.local
+*.yaml.local
+
+# Database files
+*.db
+*.db.journal
+*.h2.db
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Maven
+pom.xml.versionsBackup
+
+# Spring Boot DevTools
+spring-boot-devtools.properties
