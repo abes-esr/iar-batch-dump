@@ -41,6 +41,11 @@ public class AppProperties {
      */
     private int maxRetries = 3;
 
+    /**
+     * Path to the SQL query file for PPN extraction.
+     */
+    private String ppnQueryFile = "sql/queries/select_ppn_with_rameau.sql";
+
     // Getters and Setters
 
     public int getChunkSize() {
@@ -89,5 +94,13 @@ public class AppProperties {
 
     public void setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
+    }
+
+    public String getPpnQueryFile() {
+        return ppnQueryFile;
+    }
+
+    public void setPpnQueryFile(String ppnQueryFile) {
+        this.ppnQueryFile = ppnQueryFile;
     }
 }

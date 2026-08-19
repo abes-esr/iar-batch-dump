@@ -66,3 +66,4 @@ app:
     chunk-size: 1000
     max-readers: 5
     temp-directory: /tmp/iar-batch
+    ppn-query-file: sql/queries/select_ppn_with_rameau.sql
