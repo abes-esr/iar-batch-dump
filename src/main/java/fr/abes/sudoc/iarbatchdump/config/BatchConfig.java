@@ -3,6 +3,7 @@ package fr.abes.sudoc.iarbatchdump.config;
 import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
 import fr.abes.sudoc.iarbatchdump.model.RameauExportParams;
 import fr.abes.sudoc.iarbatchdump.processor.RameauDataProcessor;
+import fr.abes.sudoc.iarbatchdump.reader.SqlFilePpnReader;
 import fr.abes.sudoc.iarbatchdump.service.FileUploadService;
 import fr.abes.sudoc.iarbatchdump.service.VectorizationService;
 import org.springframework.batch.core.Job;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -162,31 +164,19 @@ public class BatchConfig {
             @Value("#{jobParameters['exportAction']}") String exportAction,
             @Value("#{jobParameters['nbJours']}") int nbJours) {
 
-        String whereClause = """
-                b.biblevel = 'a'
-                  AND b.typecontrol = 'm'
-                  AND EXISTS (SELECT 1 FROM BIBLIO_TABLE_LIEN_RAMEAU WHERE ppn = b.ppn)
-                  AND EXISTS (SELECT 1 FROM biblio_table_frbr_3XX WHERE tag = '330$a' AND ppn = b.ppn)
-                """;
-
-        if ("update".equals(exportAction)) {
-            whereClause += " AND b.ppn IN (SELECT DISTINCT ppn FROM BIBLIO_TABLE_CHANGE_BY_TAG WHERE DATE_ETAT > SYSDATE - :nbJours AND TAG = '606$2')";
-        }
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("nbJours", nbJours);
-
-        return new JdbcPagingItemReaderBuilder<String>()
-                .name("ppnReader")
-                .dataSource(oracleDataSource)
-                .selectClause("DISTINCT b.ppn")
-                .fromClause("biblio_table_generale b")
-                .whereClause(whereClause)
-                .sortKeys(Collections.singletonMap("b.ppn", Order.ASCENDING))
-                .parameterValues(params)
-                .pageSize(1000)
-                .rowMapper((rs, rowNum) -> rs.getString("ppn"))
+        SqlFilePpnReader reader = new SqlFilePpnReader(
+                new JdbcTemplate(oracleDataSource),
+                new ClassPathResource("sql/ppn_query.sql")
+        );
+        
+        // Configurer les paramètres
+        RameauExportParams params = RameauExportParams.builder()
+                .exportAction(exportAction)
+                .nbJours(nbJours)
                 .build();
+        reader.setParams(params);
+        
+        return reader;
     }
 
     @Bean
