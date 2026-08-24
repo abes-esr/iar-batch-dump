@@ -1,5 +1,5 @@
--- Requête SQL pour sélectionner les notices avec leurs métadonnées complètes
--- Cette requête utilise des CTE (Common Table Expressions) pour structurer la logique
+-- requete sql extraite de la procédure. imite le fonctionnement mais contient aucun pl/sql
+-- la requete est faite sur les tables de tests (préfixées par 'iar_')
 
 -- Notices sélectionnées (ont un titre, un résumé, un sujet rameau, etc)
 WITH notice_candidate AS (

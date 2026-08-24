@@ -1,5 +1,6 @@
 package fr.abes.sudoc.iarbatchdump.config;
 
+import fr.abes.sudoc.iarbatchdump.mapper.NoticeRowMapper;
 import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
 import fr.abes.sudoc.iarbatchdump.model.RameauExportParams;
 import fr.abes.sudoc.iarbatchdump.processor.RameauDataProcessor;
@@ -18,8 +19,8 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.Order;
-import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
+import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,15 +29,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 
 @Configuration
 @EnableBatchProcessing
@@ -185,14 +188,31 @@ public class BatchConfig {
         return new RameauDataProcessor(oracleJdbcTemplate);
     }
 
+
+
+
+    // j'ai rajouté un paramètre pour qu'on exécute le même writer mais soit sur la requete, soit sur la procédure
+    // (même traitement mais noms de fichiers différents)
+
+    // J'ai aussi changé le type de "ItemWriter" à "FlatItemWriter" parce que... je sais plus mais ça marchait pas sinon 
+    // (je crois un problème avec le step, qui avait un reader en JdbcCursorItemReader et un writer en truc pas compatible)
     @Bean
     @StepScope
-    public ItemWriter<CsvRecord> csvWriter(
+    public FlatFileItemWriter<CsvRecord> csvWriter(
             @Value("#{jobParameters['outputFilePath']}") String outputFilePath,
-            @Value("#{jobParameters['exportAction']}") String exportAction) {
+            @Value("#{jobParameters['exportAction']}") String exportAction,
+            @Value("#{jobParameters['executionRequete']}") String executionRequete
 
-        String filename = "update".equals(exportAction) ?
-                "export_rameau_update.csv" : "export_rameau.csv";
+            ) {
+        
+        String filename;
+
+        if(executionRequete.equals("true")){
+            filename = "requete_sur_ppn_test.csv";
+        }
+        else{
+            filename = "procedure_sur_ppn_test.csv";
+        }
 
         FlatFileItemWriter<CsvRecord> writer = new FlatFileItemWriter<>();
         writer.setResource(new FileSystemResource(outputFilePath + "/" + filename));
@@ -201,4 +221,76 @@ public class BatchConfig {
         writer.setHeaderCallback(w -> w.write("ppn\tthese\ttitre\tresume\trameau\tlangue"));
         return writer;
     }
+
+
+
+// exemple pour récupérer les résultats de la requête (job + step + reader)
+
+    // job
+    @Bean
+    public Job exportNoticesJob_Romain(
+            JobRepository jobRepository,
+            Step export_notice_to_csv_Step) {
+
+        return new JobBuilder("exportNoticesJob_Romain", jobRepository)
+                .start(export_notice_to_csv_Step)
+                .build();
+    }
+
+
+    // step
+    @Bean
+    public Step export_notice_to_csv_Step(
+            JobRepository jobRepository,
+            PlatformTransactionManager transactionManager,
+            JdbcCursorItemReader<CsvRecord> noticeReader,
+            FlatFileItemWriter<CsvRecord> csvWriter) {
+
+        return new StepBuilder("export_notice_to_csv_Step", jobRepository)
+                .<CsvRecord, CsvRecord>chunk(
+                        100,
+                        transactionManager
+                )
+                .reader(noticeReader)
+                // pas besoin de processor ici, puisqu'il n'y a pas de traitement entre l'entrée et la sortie
+                .writer(csvWriter)
+                .build();
+    }
+
+
+    // reader
+    @Bean
+    @StepScope
+    public JdbcCursorItemReader<CsvRecord> noticeReader(
+            DataSource dataSource,
+            @Value("classpath:/sql/notices_test_query.sql") Resource sqlFile,
+            @Value("#{jobParameters['executionRequete']}") String executionRequete
+    ) throws IOException {
+        
+
+        String sql;
+
+        // si on veut récupérer les résultats de la requête sql, il faut lire le fichier pour obtenir la requête du fichier.
+        if(executionRequete.equals("true")){
+            sql = new String(
+                    sqlFile.getInputStream().readAllBytes(),
+                    StandardCharsets.UTF_8
+            );
+        }
+        // si on veut récupérer les résultats de la procédure, on lit juste cette table 
+        // (j'ai rempli manuellement cette table avec les résultats de la procédure)
+        else{
+            sql = "SELECT * FROM IAR_RESULTAT_ORIGINAL";
+        }
+
+    
+        return new JdbcCursorItemReaderBuilder<CsvRecord>()
+                .name("noticeReader")
+                .dataSource(dataSource)
+                .sql(sql)
+                .rowMapper(new NoticeRowMapper())
+                .build();
+    }
 }
+
+
