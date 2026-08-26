@@ -26,7 +26,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -55,30 +54,25 @@ public class BatchConfig {
     }
 
     // ======================
-    // 3. REST TEMPLATE
-    // ======================
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
-
-    // ======================
     // 4. JOBS
     // ======================
 
-//    // ---------- JOB 1 : EXTRACTION + CSV ----------
-//    @Bean
-//    public Job rameauExtractJob(JobRepository jobRepository, Step extractStep) {
-//        return new JobBuilder("rameauExtractJob", jobRepository)
-//                .incrementer(new RunIdIncrementer())
-//                .start(extractStep)
-//                .build();
-//    }
+    // ---------- JOB 1 : EXTRACTION + CSV ----------
+    @Bean
+    public Job rameauExtractJob(JobRepository jobRepository,
+                                @Qualifier("oracleDataSource") DataSource oracleDataSource,
+                                Step extractStep) {
+        return new JobBuilder("rameauExtractJob", jobRepository)
+                .incrementer(new RunIdIncrementer())
+                .start(extractStep)
+                .build();
+    }
 
     @Bean
     public Step extractStep(
             JobRepository jobRepository,
             PlatformTransactionManager transactionManager,
+            @Qualifier("oracleDataSource") DataSource oracleDataSource,
             ItemReader<PpnData> ppnReader,
             ItemProcessor<PpnData, PpnData> ppnProcessor,
             ItemWriter<PpnData> csvWriter) {
