@@ -17,8 +17,14 @@ public class IarBatchDumpApplication implements CommandLineRunner {
     private JobLauncher jobLauncher;
 
     @Autowired
-    @Qualifier("exportNoticesJob_Romain")
-    private Job exportNoticesJob; // rameauUploadJob, rameauVectorizationJob
+    @Qualifier("noticeExportJob")
+    private Job noticeExportJob; // rameauUploadJob, rameauVectorizationJob
+
+
+    @Autowired
+    @Qualifier("deduplicateJob")
+    private Job deduplicateJob; // rameauUploadJob, rameauVectorizationJob
+
 
     public static void main(String[] args) {
         SpringApplication.run(IarBatchDumpApplication.class, args);
@@ -27,36 +33,56 @@ public class IarBatchDumpApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
+        // génère le csv à partir de la requête avec chunk
         // JobParameters jobParameters = new JobParametersBuilder()
         //         .addString("exportAction", "update")
         //         .addLong("nbJours", 30L)
         //         .addString("outputFilePath", "/tmp")
+        //         .addString("executionRequete", "true")
+        //         .addString("filename", "procedure_full.csv")
         //         .toJobParameters();
 
-        // jobLauncher.run(exportNoticesJob, jobParameters);
+        // jobLauncher.run(noticeExportJob, jobParameters);
         
 
 
         //génère le csv à partir de la requête
-        JobParameters jobParameters_requete = new JobParametersBuilder()
-                .addString("exportAction", "update")
-                .addLong("nbJours", 30L)
-                .addString("outputFilePath", "/tmp")
-                .addString("executionRequete", "true")
-                .toJobParameters();
+        // JobParameters jobParameters_requete = new JobParametersBuilder()
+        //         .addString("exportAction", "update")
+        //         .addLong("nbJours", 30L)
+        //         .addString("outputFilePath", "/tmp")
+        //         .addString("executionRequete", "true")
+        // .addString("filename", "procedure_full.csv")
+        //         .toJobParameters();
 
-        jobLauncher.run(exportNoticesJob, jobParameters_requete);
+        // jobLauncher.run(noticeExportJob, jobParameters_requete);
 
 
 
-        //génère le csv à partir de la procédure
-        JobParameters jobParameters_procedure = new JobParametersBuilder()
-                .addString("exportAction", "update")
-                .addLong("nbJours", 30L)
-                .addString("outputFilePath", "/tmp")
-                .addString("executionRequete", "false")
-                .toJobParameters();
+        // génère le csv à partir de la procédure
+        // JobParameters jobParameters_procedure = new JobParametersBuilder()
+        //         .addString("exportAction", "update")
+        //         .addLong("nbJours", 30L)
+        //         .addString("outputFilePath", "/tmp")
+        //         .addString("executionRequete", "false")
+        //         .addString("filename", "procedure_sur_ppns_test.csv")
+        //         .toJobParameters();
 
-        jobLauncher.run(exportNoticesJob, jobParameters_procedure);
+        // jobLauncher.run(noticeExportJob, jobParameters_procedure);
+        
+        
+
+        //déduplication des doublons (le fichier existe déjà)
+        // JobParameters jobParameters_dedoublonage = new JobParametersBuilder()
+        //         .addString("outputFilePath", "/tmp")
+        //         .addString("filename", "requete_full_avec_chunk.csv")
+        //         .toJobParameters();
+
+        // jobLauncher.run(deduplicateJob, jobParameters_dedoublonage);
+
+
+        
     }
+
+    
 }

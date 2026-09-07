@@ -1,8 +1,8 @@
 package fr.abes.sudoc.iarbatchdump.config;
 
-import fr.abes.sudoc.iarbatchdump.mapper.NoticeRowMapper;
 import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
 import fr.abes.sudoc.iarbatchdump.model.RameauExportParams;
+import fr.abes.sudoc.iarbatchdump.processor.DeduplicateNoticesProcessor;
 import fr.abes.sudoc.iarbatchdump.processor.RameauDataProcessor;
 import fr.abes.sudoc.iarbatchdump.reader.SqlFilePpnReader;
 import fr.abes.sudoc.iarbatchdump.service.FileUploadService;
@@ -14,13 +14,14 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
-import org.springframework.batch.item.database.builder.JdbcCursorItemReaderBuilder;
+import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,16 +30,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 
 @Configuration
@@ -75,7 +72,7 @@ public class BatchConfig {
 
     // ---------- JOB 1 : EXTRACTION + CSV ----------
     @Bean
-    public Job rameauExtractJob(JobRepository jobRepository, Step extractStep) {
+    public Job rameauExtractJob(JobRepository jobRepository, @Qualifier("extractStep") Step extractStep) {
         return new JobBuilder("rameauExtractJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(extractStep)
@@ -102,7 +99,7 @@ public class BatchConfig {
 
     // ---------- JOB 2 : UPLOAD ----------
     @Bean
-    public Job rameauUploadJob(JobRepository jobRepository, Step uploadStep) {
+    public Job rameauUploadJob(JobRepository jobRepository, @Qualifier("uploadStep") Step uploadStep) {
         return new JobBuilder("rameauUploadJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(uploadStep)
@@ -188,31 +185,14 @@ public class BatchConfig {
         return new RameauDataProcessor(oracleJdbcTemplate);
     }
 
-
-
-
-    // j'ai rajouté un paramètre pour qu'on exécute le même writer mais soit sur la requete, soit sur la procédure
-    // (même traitement mais noms de fichiers différents)
-
-    // J'ai aussi changé le type de "ItemWriter" à "FlatItemWriter" parce que... je sais plus mais ça marchait pas sinon 
-    // (je crois un problème avec le step, qui avait un reader en JdbcCursorItemReader et un writer en truc pas compatible)
     @Bean
     @StepScope
-    public FlatFileItemWriter<CsvRecord> csvWriter(
+    public ItemWriter<CsvRecord> csvWriter(
             @Value("#{jobParameters['outputFilePath']}") String outputFilePath,
-            @Value("#{jobParameters['exportAction']}") String exportAction,
-            @Value("#{jobParameters['executionRequete']}") String executionRequete
+            @Value("#{jobParameters['exportAction']}") String exportAction) {
 
-            ) {
-        
-        String filename;
-
-        if(executionRequete.equals("true")){
-            filename = "requete_sur_ppn_test.csv";
-        }
-        else{
-            filename = "procedure_sur_ppn_test.csv";
-        }
+        String filename = "update".equals(exportAction) ?
+                "export_rameau_update.csv" : "export_rameau.csv";
 
         FlatFileItemWriter<CsvRecord> writer = new FlatFileItemWriter<>();
         writer.setResource(new FileSystemResource(outputFilePath + "/" + filename));
@@ -224,31 +204,42 @@ public class BatchConfig {
 
 
 
+    
+
+
+
 // exemple pour récupérer les résultats de la requête (job + step + reader)
 
     // job
     @Bean
-    public Job exportNoticesJob_Romain(
+    public Job noticeExportJob(
             JobRepository jobRepository,
-            Step export_notice_to_csv_Step) {
+            @Qualifier("exportNoticesStep") Step exportNoticesStep
+            // @Qualifier("deduplicateNoticesStep") Step deduplicateCsvStep
+        ) {
 
-        return new JobBuilder("exportNoticesJob_Romain", jobRepository)
-                .start(export_notice_to_csv_Step)
+        return new JobBuilder("noticeExportJob", jobRepository)
+                .start(exportNoticesStep)
+                // .next(deduplicateCsvStep)
                 .build();
     }
 
 
-    // step
+
+    
+
+
+    // step worker (celui qui read et write)
     @Bean
-    public Step export_notice_to_csv_Step(
+    public Step exportNoticeWorkerStep(
             JobRepository jobRepository,
             PlatformTransactionManager transactionManager,
             JdbcCursorItemReader<CsvRecord> noticeReader,
             FlatFileItemWriter<CsvRecord> csvWriter) {
 
-        return new StepBuilder("export_notice_to_csv_Step", jobRepository)
+        return new StepBuilder("exportNoticeWorkerStep", jobRepository)
                 .<CsvRecord, CsvRecord>chunk(
-                        100,
+                        1000,
                         transactionManager
                 )
                 .reader(noticeReader)
@@ -258,39 +249,44 @@ public class BatchConfig {
     }
 
 
-    // reader
+    // step qui lance le step de lecture et d'écriture mais sur différentes partitions
     @Bean
-    @StepScope
-    public JdbcCursorItemReader<CsvRecord> noticeReader(
-            DataSource dataSource,
-            @Value("classpath:/sql/notices_test_query.sql") Resource sqlFile,
-            @Value("#{jobParameters['executionRequete']}") String executionRequete
-    ) throws IOException {
-        
+    public Step exportNoticesStep(
+            JobRepository jobRepository,
+            @Qualifier("exportNoticeWorkerStep") Step exportNoticeWorkerStep,
+            Partitioner noticePartitioner) {
 
-        String sql;
-
-        // si on veut récupérer les résultats de la requête sql, il faut lire le fichier pour obtenir la requête du fichier.
-        if(executionRequete.equals("true")){
-            sql = new String(
-                    sqlFile.getInputStream().readAllBytes(),
-                    StandardCharsets.UTF_8
-            );
-        }
-        // si on veut récupérer les résultats de la procédure, on lit juste cette table 
-        // (j'ai rempli manuellement cette table avec les résultats de la procédure)
-        else{
-            sql = "SELECT * FROM IAR_RESULTAT_ORIGINAL";
-        }
-
-    
-        return new JdbcCursorItemReaderBuilder<CsvRecord>()
-                .name("noticeReader")
-                .dataSource(dataSource)
-                .sql(sql)
-                .rowMapper(new NoticeRowMapper())
+        return new StepBuilder("exportNoticesStep", jobRepository)
+                .partitioner(
+                        "exportNoticesWorkerStep",
+                        noticePartitioner
+                )
+                .step(exportNoticeWorkerStep)
+                .gridSize(1)
                 .build();
     }
+
+    // step qui supprime les doublons du fichier
+    @Bean
+    public Step deduplicateNoticesStep(
+        JobRepository jobRepository,
+        PlatformTransactionManager transactionManager,
+        FlatFileItemReader<CsvRecord> deduplicationReader,
+        DeduplicateNoticesProcessor processor,
+        @Qualifier("deduplicationCsvWriter") FlatFileItemWriter<CsvRecord> deduplicatedCsvWriter) {
+
+        return new StepBuilder(
+                "deduplicateNoticesStep",
+                jobRepository
+        )
+        .<CsvRecord, CsvRecord>chunk(
+                1000,
+                transactionManager
+        )
+        .reader(deduplicationReader)
+        .processor(processor)
+        .writer(deduplicatedCsvWriter)
+        .build();
+    }
+
 }
-
-
