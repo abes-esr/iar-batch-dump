@@ -1,0 +1,13 @@
+spring:
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+
+app:
+  batch:
+    enabled: false
+    partition:
+      chunk-size: 30000000
+      source-table: ${SOURCE_TABLE_TEST}
