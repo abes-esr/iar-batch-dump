@@ -1,5 +1,5 @@
--- Requête SQL pour sélectionner les notices avec leurs métadonnées complètes
--- Cette requête utilise des CTE (Common Table Expressions) pour structurer la logique
+-- requete sql extraite de la procédure. imite le fonctionnement mais contient aucun pl/sql
+-- la requete est faite sur les tables de tests (préfixées par 'iar_')
 
 -- Notices sélectionnées (ont un titre, un résumé, un sujet rameau, etc)
 WITH notice_candidate AS (
@@ -10,7 +10,7 @@ WITH notice_candidate AS (
     WHERE b.biblevel = 'a' AND b.typecontrol = 'm'
       AND EXISTS ( SELECT 1 FROM iar_biblio_table_lien_rameau r WHERE r.ppn = b.ppn )      -- La notice possède au moins un sujet RAMEAU
       AND EXISTS ( SELECT 1 FROM iar_biblio_table_frbr_3XX r WHERE r.ppn = b.ppn AND r.tag = '330$a' )      -- La notice possède au moins un résumé
-      AND ROWNUM <= 1000
+      AND b.id > ? AND b.id <= ?
 ),
 
 -- refiltre certaines notices, et récupère la position des zones rameau 606
@@ -89,5 +89,5 @@ FROM (
     FROM notice_valide
 ) n
 
-LEFT JOIN rameau_par_notice r
-    ON r.ppn = n.ppn;
+JOIN rameau_par_notice r
+    ON r.ppn = n.ppn

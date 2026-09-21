@@ -16,15 +16,29 @@ spring:
 
 app:
   batch:
-    output-dir: /globule_pastel_rocou  # Chemin par défaut pour les fichiers CSV
-    upload-url: http://152.228.161.151:8100/uploadfile
-    vectorization-url: http://152.228.161.151:8100/lanceVectorisation
+    enabled: true
+    action: update
+    output-directory: ${BATCH_OUTPUT_DIR}
+    upload-url: ${UPLOAD_URL}
+    vectorization-url: ${VECTORIZATION_URL}
+    partition:
+      chunk-size: ${CHUNK_SIZE}
+      source-table: ${SOURCE_TABLE_TEST}
+  comparison-test:
+    output-directory: ${BATCH_TEST_OUTPUT_DIR}
+    procedure-filename: procedure_test.csv
+    query-filename: query_test.csv
   datasource:
     oracle:
       driver-class-name: oracle.jdbc.OracleDriver
-      jdbc-url: jdbc:oracle:thin:@//${ORACLE_HOST:host_name}:${ORACLE_PORT:1521}/${ORACLE_SERVICE:service_name}
-      username: ${ORACLE_USER:user}
-      password: ${ORACLE_PASSWORD:password}
+      jdbc-url: jdbc:oracle:thin:@//${ORACLE_HOST}:${ORACLE_PORT}/${ORACLE_SERVICE}
+      username: ${ORACLE_USER}
+      password: ${ORACLE_PASSWORD}
+    oracle-test:
+      driver-class-name: oracle.jdbc.OracleDriver
+      jdbc-url: jdbc:oracle:thin:@//${ORACLE_TEST_HOST}:${ORACLE_TEST_PORT}/${ORACLE_TEST_SERVICE}
+      username: ${ORACLE_TEST_USER}
+      password: ${ORACLE_TEST_PASSWORD}
 
 
 logging:
