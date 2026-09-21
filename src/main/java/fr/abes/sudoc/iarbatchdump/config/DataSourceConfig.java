@@ -21,12 +21,18 @@ public class DataSourceConfig {
         return DataSourceBuilder.create().build();
     }
 
+    // --- DataSource Oracle SUDOC test ---
+    @Bean
+    @ConfigurationProperties(prefix = "app.datasource.oracle-test")
+    public DataSource testDataSource() {
+        return DataSourceBuilder.create().build();
+    }
+
     // --- DataSource H2 (pour Spring Batch) ---
     @Bean
     public DataSource dataSource() {
         return new EmbeddedDatabaseBuilder()
                 .setType(EmbeddedDatabaseType.H2)
-                .setName("batchdb")
                 .addScript("classpath:org/springframework/batch/core/schema-h2.sql")
                 .build();
     }

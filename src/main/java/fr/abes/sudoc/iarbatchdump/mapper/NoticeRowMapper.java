@@ -1,5 +1,7 @@
 package fr.abes.sudoc.iarbatchdump.mapper;
 
+import org.apache.commons.text.StringEscapeUtils;
+
 import org.springframework.jdbc.core.RowMapper;
 
 import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
@@ -13,14 +15,14 @@ public class NoticeRowMapper
     @Override
     public CsvRecord mapRow(ResultSet rs, int rowNum)
             throws SQLException {
-        
+
         return CsvRecord.builder()
                         .ppn(rs.getString("PPN"))
                         .these(rs.getString("PPN_THESE"))
-                        .titre(rs.getString("TITRE"))
-                        .resume(rs.getString("RESUME"))
+                        .titre(StringEscapeUtils.unescapeXml(rs.getString("TITRE"))) 
+                        .resume(StringEscapeUtils.unescapeXml(rs.getString("RESUME"))) 
                         .langue(rs.getString("LANGUE"))
-                        .libelleRameau(rs.getString("RAMEAU"))
+                        .libelleRameau(StringEscapeUtils.unescapeXml(rs.getString("RAMEAU")))
                         .build();
         
     }

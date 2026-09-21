@@ -10,6 +10,7 @@ WITH notice_candidate AS (
       AND EXISTS ( SELECT 1 FROM biblio_table_lien_rameau r WHERE r.ppn = b.ppn )      -- La notice possède au moins un sujet RAMEAU
       AND EXISTS ( SELECT 1 FROM biblio_table_frbr_3XX r WHERE r.ppn = b.ppn AND r.tag = '330$a' )      -- La notice possède au moins un résumé
       AND b.id > ? AND b.id <= ?
+      ${UPDATE_CONDITION}
 ),
 
 -- refiltre certaines notices, et récupère la position des zones rameau 606
