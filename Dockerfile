@@ -6,9 +6,9 @@ WORKDIR /build/
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt -y install locales
 RUN sed -i '/fr_FR.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
-ENV LANG fr_FR.UTF-8
-ENV LANGUAGE fr_FR:fr
-ENV LC_ALL fr_FR.UTF-8
+ENV LANG=fr_FR.UTF-8
+ENV LANGUAGE=fr_FR:fr
+ENV LC_ALL=fr_FR.UTF-8
 # On lance la compilation
 # si on a un .m2 local on peut décommenter la ligne suivante pour
 # éviter à maven de retélécharger toutes les dépendances
@@ -41,9 +41,9 @@ COPY --from=build-image /build/target/*.jar /scripts/indexation-rameau-batch-dum
 RUN chmod +x /scripts/*batch*.sh
 # Les locales fr_FR
 RUN dnf install langpacks-fr glibc-all-langpacks -y
-ENV LANG fr_FR.UTF-8
-ENV LANGUAGE fr_FR:fr
-ENV LC_ALL fr_FR.UTF-8
+ENV LANG=fr_FR.UTF-8
+ENV LANGUAGE=fr_FR:fr
+ENV LC_ALL=fr_FR.UTF-8
 # Lancement de l'entrypoint et du démon crond
 COPY ./docker/batch/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
