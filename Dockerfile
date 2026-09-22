@@ -1,6 +1,6 @@
 ###
 # Image pour la compilation de indexation-rameau-batch-dump
-FROM maven:3-eclipse-temurin-17 as build-image
+FROM maven:3-eclipse-temurin-21 as build-image
 WORKDIR /build/
 # Installation et configuration de la locale FR
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt -y install locales
@@ -24,7 +24,7 @@ RUN mvn --batch-mode \
 
 ###
 # Image pour le module batch de indexation-rameau-batch-dump
-# Remarque: l'image openjdk:17 n'est pas utilisée car nous avons besoin de cronie
+# Remarque: l'image openjdk:21 n'est pas utilisée car nous avons besoin de cronie
 #           qui n'est que disponible sous centos/rockylinux.
 FROM rockylinux:8 as batch-image
 WORKDIR /scripts/
@@ -35,7 +35,7 @@ RUN dnf install -y cronie gettext && \
     crond -V && rm -rf /etc/cron.*/*
 COPY ./docker/batch/tasks.tmpl /etc/cron.d/tasks.tmpl
 # Le JAR et le script pour le batch de IAR batch
-RUN dnf install -y java-17-openjdk
+RUN dnf install -y java-21-openjdk
 COPY ./docker/batch/indexation-rameau-batch-dump-batch1.sh /scripts/indexation-rameau-batch-dump-batch1.sh
 COPY --from=build-image /build/target/*.jar /scripts/indexation-rameau-batch-dump-batch1.jar
 RUN chmod +x /scripts/*batch*.sh
