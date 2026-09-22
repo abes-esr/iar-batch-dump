@@ -1,6 +1,6 @@
 ###
 # Image pour la compilation de indexation-rameau-batch-dump
-FROM maven:3-eclipse-temurin-21 as build-image
+FROM maven:3-eclipse-temurin-21 AS build-image
 WORKDIR /build/
 # Installation et configuration de la locale FR
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt -y install locales
@@ -15,10 +15,10 @@ ENV LC_ALL fr_FR.UTF-8
 #COPY ./.m2/    /root/.m2/
 COPY ./ /build/
 RUN mvn --batch-mode \
-        -Dmaven.test.skip=true \
-        -Duser.timezone=Europe/Paris \
-        -Duser.language=fr \
-        package
+    -Dmaven.test.skip=true \
+    -Duser.timezone=Europe/Paris \
+    -Duser.language=fr \
+    package
 
 
 
@@ -26,7 +26,7 @@ RUN mvn --batch-mode \
 # Image pour le module batch de indexation-rameau-batch-dump
 # Remarque: l'image openjdk:21 n'est pas utilisée car nous avons besoin de cronie
 #           qui n'est que disponible sous centos/rockylinux.
-FROM rockylinux:8 as batch-image
+FROM rockylinux:8 AS batch-dump-image
 WORKDIR /scripts/
 # systeme pour les crontab
 # cronie: remplacant de crond qui support le CTRL+C dans docker (sans ce système c'est compliqué de stopper le conteneur)
