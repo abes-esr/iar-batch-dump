@@ -28,7 +28,7 @@ jobs:
         id: docker_tag_meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ inputs.dockerhub_image_prefix }}
+          images: ${{ env.DOCKERHUB_IMAGE_PREFIX }}
 
       # Configuration du builder Docker Buildx
       - name: "Set up Docker Buildx"
