@@ -31,6 +31,7 @@ app:
   datasource:
     oracle:
       driver-class-name: oracle.jdbc.OracleDriver
+
       jdbc-url: jdbc:oracle:thin:@//${IAR_ORACLE_HOST}:${IAR_ORACLE_PORT}/${IAR_ORACLE_SERVICE}
       username: ${IAR_ORACLE_USER}
       password: ${IAR_ORACLE_PASSWORD}
