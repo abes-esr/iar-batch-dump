@@ -10,4 +10,4 @@ app:
     enabled: false
     partition:
       chunk-size: 30000000
-      source-table: ${SOURCE_TABLE_TEST}
+      source-table: ${IAR_SOURCE_TABLE_TEST:IAR_BIBLIO_TABLE_GENERALE}
