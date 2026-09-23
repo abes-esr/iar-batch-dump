@@ -18,14 +18,14 @@ app:
   batch:
     enabled: true
     action: update
-    output-directory: ${BATCH_OUTPUT_DIR}
-    upload-url: ${UPLOAD_URL}
-    vectorization-url: ${VECTORIZATION_URL}
+    output-directory: ${IAR_BATCH_OUTPUT_DIR}
+    upload-url: ${IAR_BATCH_UPLOAD_URL}
+    vectorization-url: ${IAR_BATCH_VECTORIZATION_URL}
     partition:
-      chunk-size: ${CHUNK_SIZE}
-      source-table: ${SOURCE_TABLE_TEST}
+      chunk-size: ${IAR_BATCH_CHUNK_SIZE}
+      source-table: ${IAR_BATCH_SOURCE_TABLE}
   comparison-test:
-    output-directory: ${BATCH_TEST_OUTPUT_DIR}
+    output-directory: ${IAR_BATCH_TEST_OUTPUT_DIR}
     procedure-filename: procedure_test.csv
     query-filename: query_test.csv
   datasource:
