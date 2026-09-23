@@ -1,34 +1,17 @@
-# ==============================================================================
-# Workflow Réutilisable : Création de Release
-# ==============================================================================
-# Description : Ce workflow prépare et crée une version de release pour le projet.
-#               - Vérifie que la branche courante est main ou master.
-#               - Vérifie que le format de version respecte SemVer.
-#               - Vérifie que le tag n'existe pas déjà.
-#               - Met à jour les versions dans les pom.xml (Maven).
-#               - Commite, tag, pousse et fusionne sur la branche 'develop'.
-#               - Crée la release GitHub associée.
-#
-# Entrées (Inputs) :
-#   - releaseVersion : La version de la release au format X.Y.Z.
-#
-# Secrets requis :
-#   - TOKEN_GITHUB_FOR_GITHUB_ACTION : Token GitHub avec droits de push et de release.
-# ==============================================================================
-name: "Create Release for Java"
+name: "Create Release"
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       versionType:
-        description: "Quel type de version ? (major, minor, patch)"
+        description: "Quel type de version ?"
         required: true
-        type: string
         default: "patch"
-    secrets:
-      TOKEN_GITHUB_FOR_GITHUB_ACTION:
-        description: "Token GitHub avec privilèges d écriture pour tagger et release"
-        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   create-release:
