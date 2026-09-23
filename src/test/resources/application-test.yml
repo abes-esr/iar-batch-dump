@@ -11,3 +11,15 @@ app:
     partition:
       chunk-size: 30000000
       source-table: ${IAR_SOURCE_TABLE_TEST:IAR_BIBLIO_TABLE_GENERALE}
+    
+  comparison-test:
+    output-directory: ${IAR_BATCH_TEST_OUTPUT_DIR}
+    procedure-filename: ${IAR_PROCEDURE_TEST_FILENAME}
+    query-filename: ${IAR_REQUETE_TEST_FILENAME}
+    
+  datasource:
+    oracle-test:
+      driver-class-name: oracle.jdbc.OracleDriver
+      jdbc-url: jdbc:oracle:thin:@//${IAR_ORACLE_TEST_HOST}:${IAR_ORACLE_TEST_PORT}/${IAR_ORACLE_TEST_SERVICE}
+      username: ${IAR_ORACLE_TEST_USER}
+      password: ${IAR_ORACLE_TEST_PASSWORD}

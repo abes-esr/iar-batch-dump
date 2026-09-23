@@ -53,8 +53,14 @@ class GenerationComparisonTest {
     private Job jobRequete;
 
 
-    @Value("${app.batch.output-directory}")
+    @Value("${app.comparison-test.output-directory}")
     private String outputFilePath;
+
+    @Value("${app.comparison-test.procedure-filename}")
+    private String procedureFilename;
+
+    @Value("${app.comparison-test.query-filename}")
+    private String queryFilename;
 
 
     private final JdbcTemplate comparisonJdbcTemplate;
@@ -85,7 +91,7 @@ class GenerationComparisonTest {
         // 2. Transformer le résultat de la procédure en CSV
         JobParameters jobParametersProcedure = new JobParametersBuilder()
                 .addString("outputFilePath", outputFilePath)
-                .addString("filename", "procedure_test.csv")
+                .addString("filename", procedureFilename)
                 .toJobParameters();
 
         jobLauncher.run(jobProcedure , jobParametersProcedure );
@@ -95,7 +101,7 @@ class GenerationComparisonTest {
         JobParameters jobParametersQuery = new JobParametersBuilder()
                 .addString("outputFilePath", outputFilePath)
                 .addString("sqlFile", "notices_query_test.sql")
-                .addString("filename", "requete_test.csv")
+                .addString("filename", queryFilename)
                 .toJobParameters();
                 
         jobLauncher.run(jobRequete , jobParametersQuery );
@@ -108,10 +114,10 @@ class GenerationComparisonTest {
 
     
    
-    private void comparerCsv() throws IOException {
+private void comparerCsv() throws IOException {
 
-    Path fichierProcedure = Path.of(outputFilePath + "/procedure_test.csv");
-    Path fichierRequete = Path.of(outputFilePath + "/requete_test.csv");
+    Path fichierProcedure = Path.of(outputFilePath + "/" + procedureFilename);
+    Path fichierRequete = Path.of(outputFilePath + "/" + queryFilename);
 
     Map<String, CsvRecord> procedureRecords = lireCsv(fichierProcedure);
     Map<String, CsvRecord> requeteRecords = lireCsv(fichierRequete);
