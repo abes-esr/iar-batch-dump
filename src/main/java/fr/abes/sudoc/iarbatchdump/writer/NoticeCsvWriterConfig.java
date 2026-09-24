@@ -12,6 +12,9 @@ import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
 
 @Configuration
 public class NoticeCsvWriterConfig {
+
+    @Value("${app.batch.action}")
+    private String action;
     
 
     @Bean
@@ -22,9 +25,11 @@ public class NoticeCsvWriterConfig {
             @Value("#{jobParameters['filename']}") String filename
             ) {
         
+        String outputFilename = filename.split(".csv")[0] + "_" + action + ".csv";
+
         FlatFileItemWriter<CsvRecord> writer = new FlatFileItemWriter<>();
         writer.setName("noticeCsvWriter");
-        writer.setResource(new FileSystemResource(outputFilePath + "/" + filename));
+        writer.setResource(new FileSystemResource(outputFilePath + "/" + outputFilename));
         writer.setAppendAllowed(false);
         writer.setLineAggregator(item -> item.toCsvLine());
         writer.setHeaderCallback(w -> w.write("ppn\tthese\ttitre\tresume\trameau\tlangue"));

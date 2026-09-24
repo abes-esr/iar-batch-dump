@@ -1,4 +1,6 @@
 spring:
+  main:
+    web-application-type: none
   application:
     name: iar-batch-dump
 
@@ -19,28 +21,18 @@ app:
     enabled: true
     action: update
     output-directory: ${IAR_BATCH_OUTPUT_DIR}
-    upload-url: ${IAR_BATCH_UPLOAD_URL}
+    output-filename: ${IAR_BATCH_CSV_OUTPUT_FILENAME:export_rameau.csv}
     vectorization-url: ${IAR_BATCH_VECTORIZATION_URL}
     partition:
       chunk-size: ${IAR_BATCH_CHUNK_SIZE}
       source-table: ${IAR_BATCH_SOURCE_TABLE}
-  comparison-test:
-    output-directory: ${IAR_BATCH_TEST_OUTPUT_DIR}
-    procedure-filename: procedure_test.csv
-    query-filename: query_test.csv
+
   datasource:
     oracle:
       driver-class-name: oracle.jdbc.OracleDriver
-
       jdbc-url: jdbc:oracle:thin:@//${IAR_ORACLE_HOST}:${IAR_ORACLE_PORT}/${IAR_ORACLE_SERVICE}
       username: ${IAR_ORACLE_USER}
       password: ${IAR_ORACLE_PASSWORD}
-    oracle-test:
-      driver-class-name: oracle.jdbc.OracleDriver
-      jdbc-url: jdbc:oracle:thin:@//${IAR_ORACLE_TEST_HOST}:${IAR_ORACLE_TEST_PORT}/${IAR_ORACLE_TEST_SERVICE}
-      username: ${IAR_ORACLE_TEST_USER}
-      password: ${IAR_ORACLE_TEST_PASSWORD}
-
 
 logging:
   level:

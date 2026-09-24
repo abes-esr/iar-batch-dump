@@ -9,13 +9,13 @@ app:
   batch:
     enabled: false
     partition:
-      chunk-size: 30000000
-      source-table: ${IAR_SOURCE_TABLE_TEST:IAR_BIBLIO_TABLE_GENERALE}
+      chunk-size: ${IAR_BATCH_TEST_CHUNK_SIZE}
+      source-table: ${IAR_BATCH_TEST_SOURCE_TABLE}
     
   comparison-test:
     output-directory: ${IAR_BATCH_TEST_OUTPUT_DIR}
-    procedure-filename: ${IAR_PROCEDURE_TEST_FILENAME}
-    query-filename: ${IAR_REQUETE_TEST_FILENAME}
+    procedure-filename: ${IAR_BATCH_TEST_PROCEDURE_FILENAME}
+    query-filename: ${IAR_BATCH_TEST_REQUETE_FILENAME}
     
   datasource:
     oracle-test:
