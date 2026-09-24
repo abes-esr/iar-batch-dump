@@ -16,6 +16,9 @@ import fr.abes.sudoc.iarbatchdump.model.CsvRecord;
 @Configuration
 public class CsvReaderConfig {
     
+    //TODO faudrait refactorer ça, prck le reader et le writer font la même chose (mettre "update" ou "init" à l'intérieur du nom du fichier, mais si on change l'un faut changer l'autre aussi, bref)
+    @Value("${app.batch.action}")
+    private String action;
 
     @Bean
     @StepScope
@@ -27,7 +30,7 @@ public class CsvReaderConfig {
             .name("csvReader")
             .resource(
                     new FileSystemResource(
-                            outputFilePath + "/" + filename
+                        outputFilePath + "/" + filename.split(".csv")[0] + "_" + action + ".csv"
                     )
             )
             .linesToSkip(1)
